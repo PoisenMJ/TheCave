@@ -1,0 +1,84 @@
+.orange{ background-color: rgb(237, 131, 143); }
+.green{ background-color: rgb(114, 144, 111); }
+.grey{ background-color: rgb(114, 102, 102); }
+.circle{ border-radius: 55%; }
+.background{
+  height: 100%;
+  width: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  background-image: url('./images/1.jpg');
+  background-size: cover;
+  z-index: -100;
+  opacity: 0.7;
+}
+
+#main {
+  display: grid;
+  width: 100%;
+  height: 100%;
+  grid-template-columns: 100vw;
+  grid-template-rows: 10vh 80vh 10vh;
+}
+#header{
+  width: 100%;
+  height: 100%;
+  display: grid;
+  place-items: center;
+}
+.widget{
+  background-color: rgba(20, 20, 20, 0.95);
+  width: 20%;
+  height: 50%;
+  margin: 1rem;
+  padding: 0.5rem;
+  border-radius: 0.3rem;
+  position: relative;
+  display: grid;
+  place-items: center;
+}
+
+#footer{
+  display: grid;
+  grid-template-columns: 40% 20% 40%;
+}
+#socials{
+  display: grid; 
+  grid-template-columns: minmax(0%, 33.3%) minmax(0%, 33.3%) minmax(0%, 33.3%);
+  grid-template-rows: 10vh;
+  place-items: center;
+  background-color: rgba(0, 0, 0, 0.349);
+  border-radius: 10px;
+}
+.socialsImages{
+  height: 80%;
+  cursor: pointer;
+  border-radius: 10px;
+  transition: 0.2s;
+}
+.socialsImages:hover{background-color: rgba(0,0,0,0.2);}
+
+
+
+
+/*@media (prefers-reduced-motion: no-preference) {
+  .App-logo {
+    animation: App-logo-spin infinite 20s linear;
+  }
+}
+
+
+.App-link {
+  color: #61dafb;
+}
+*/
+
+@keyframes App-logo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
