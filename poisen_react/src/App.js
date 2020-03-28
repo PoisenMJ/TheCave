@@ -3,13 +3,14 @@ import './App.css';
 
 import spotify_image from './images/spotify.png';
 import reddit_image from './images/reddit_signin.png';
-import './js/index';
+import twitter_image from './images/twitter.png';
 
 import axios from 'axios';
 
 import Draggable from 'react-draggable';
 import SpotifyWidget from './SpotifyWidget';
 import {RedditWidget, RedditLogin} from './RedditWidget';
+import TwitterWidget from './TwitterWidget';
 
 import keys from './keys';
 
@@ -18,22 +19,38 @@ class App extends React.Component {
     super(props);
     this.state = {
       spotifyAccessToken: '', 
-      spotifyPlaylists: [], 
-      spotifyPlaylistIDs: [],
-      currentSpotifySongs: [],
-      showSongs: false,
-      showPlaylist: false
+      twitter: false,
     };
+    // localStorage.setItem('spotifyAccessToken',)
     this.spotifyLogin = this.spotifyLogin.bind(this);
+    this.twitterLogin = this.twitterLogin.bind(this);
     this.resize = this.resize.bind(this);
   }
 
-  componentDidMount(){
+  componentWillMount(){
     var params = this.getHashParams();
     var spotify_access = params.access_token;
-        //state = params.state,
+    
+    // TWITTER OAUTH
+    if (params.oauth_verifier){
+      var twitterSecondToken = params.oauth_token;
+      var twitterVerifier = params.oauth_verifier;
+      
+      fetch(`http://localhost:3001/twitter/verify/${twitterSecondToken}/${twitterVerifier}`)
+      .then(res => {
+        res.text().then(data => {
+          var d = JSON.parse(data);
+          if(d.error != "YES"){
+            this.setState({ twitter: true });
+            localStorage.setItem('twitterLoggedIn', 'true');
+          }
+        }); 
+      })
+    }
+        //state = params.state, 
         //storedState = localStorage.getItem(this.stateKey);
-    this.setState({spotifyAccessToken: spotify_access, showPlaylist: true, showSongs: false});
+    
+    localStorage.setItem('spotifyAccessToken', spotify_access);
   }
 
   generateRandomString(length) {
@@ -51,8 +68,14 @@ class App extends React.Component {
    */
   getHashParams() {
     var hashParams = {};
-    var e, r = /([^&;=]+)=?([^&;]*)/g,
+    var e, r, q;
+    if(window.location.hash != ""){
+      r = /([^&;=]+)=?([^&;]*)/g;
       q = window.location.hash.substring(1);
+    } else {
+      r = /[(\?|\&)]([^=]+)\=([^&#]+)/g;
+      q = window.location.search;
+    }
     while ( e = r.exec(q)) {
       hashParams[e[1]] = decodeURIComponent(e[2]);
     }
@@ -72,14 +95,14 @@ class App extends React.Component {
     window.location = url;
   }
 
-  redditLogin(){
-    var url = 'https://www.reddit.com/api/v1/authorize?';
-    url += '&client_id=' + encodeURIComponent(keys.reddit.CLIENT_ID);
-    url += '&response_type=code';
-    url += '&state=asfaasdfasdf';
-    url += '&redirect_uri=' + encodeURIComponent(keys.reddit.REDIRECT_URI);
-    url += '&duration=permanent';
-    url += '&scope=' + keys.reddit.SCOPE;
+  twitterLogin(){
+    fetch('http://localhost:3001/twitter/login').then(res => {
+      res.text().then(data => {
+        var d = JSON.parse(data);
+        // this.setState({ twitterToken: d.token, twitterSecret: d.secret });
+        window.location = `https://api.twitter.com/oauth/authorize?oauth_token=${d.token}`
+      });
+    });
   }
 
   resize(){
@@ -94,6 +117,9 @@ class App extends React.Component {
   // 
 
   render(){
+    var twitter = false;
+    if(localStorage.getItem('twitterLoggedIn') != null) twitter = localStorage.getItem('twitterLoggedIn');
+
     return (
         <div className="App">
           <div className="background"></div>
@@ -102,25 +128,32 @@ class App extends React.Component {
               <h1> Poisen's Cave <span className="lead">(10:05)</span></h1>
             </div>
             <div id="center">
-              {this.state.spotifyAccessToken &&
+              {localStorage.getItem('spotifyAccessToken') != null &&
                 <Draggable>
                   <div className="widget"  onClick={this.resize}>
-                    <SpotifyWidget accessToken={this.state.spotifyAccessToken}></SpotifyWidget>
+                    <SpotifyWidget accessToken={localStorage.getItem('spotifyAccessToken')}></SpotifyWidget>
                   </div>
                 </Draggable>    
               }
               <Draggable>
-                <div className="widget" style={{height: '10%'}}>
+                <div className="widget" style={{height: 'auto'}}>
                   <RedditWidget></RedditWidget>
                 </div>
               </Draggable>
+              {twitter && 
+                <Draggable>
+                  <div className="widget" style={{height: 'auto'}}>
+                    <TwitterWidget data={JSON.parse(localStorage.getItem('twitterData'))}></TwitterWidget>
+                  </div>
+                </Draggable>
+              }
             </div>
             <div id="footer">
               <div></div>
               <div id="socials">
                 <img className="socialsImages" onClick={this.spotifyLogin} src={spotify_image} alt="Spotify Login"/>
                 <img className="socialsImages" onClick={RedditLogin} src={reddit_image} alt="Reddit Login"/>
-                <img className="socialsImages" onClick={this.spotifyLogin} src={spotify_image} alt="Spotify Login"/>
+                <img className="socialsImages" onClick={this.twitterLogin} src={twitter_image} alt="Twitter Login"/>
               </div>
             </div>
           </div>

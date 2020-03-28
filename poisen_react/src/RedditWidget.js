@@ -21,14 +21,19 @@ export class RedditWidget extends React.Component{
         super(props);
         this.state = { accessToken: '', refreshToken: '', subreddits: [],
             value: '',
-            suggestions: []
+            suggestions: [],
+            posts: [],
+            imageModal: false,
+            imageModalSrc: ''
         };
+        this.formSubmit = this.formSubmit.bind(this);
+        // console.log(this.state.posts);
     }
     
     componentDidMount(){
         var params = this.getHashParams();
         // GET NUMBER OF KEYS IN OBJECT (NO LENGTH METHOD FOR OBJECT)
-        if (Object.keys(params).length > 0){
+        if (Object.keys(params).length === 2 && Object.keys(params)[0] === 'state'){
             var token = params.code;
             this.setState({ accessToken: token });
             this.getAccessToken(token);
@@ -36,7 +41,7 @@ export class RedditWidget extends React.Component{
     }
 
     getAccessToken(token){
-        fetch(`http://localhost:3001/${token}`).then((res) => {
+        fetch(`http://localhost:3001/reddit/${token}`).then((res) => {
             res.text().then(data => {
                 var d = JSON.parse(data);
                 this.setState({ accessToken: d.access_token, refreshToken: d.refresh_token }, () => {
@@ -79,16 +84,36 @@ export class RedditWidget extends React.Component{
         });
     }
 
-    getOtherSubreddit(subreddit){
-        
+    getOtherSubreddit(){
+        // var url = "https://oauth.reddit.com/subreddits/search";
+        // var params = {"q": this.state.value }
+        // var headers = {"Authorization": "bearer " + this.state.accessToken};
+        // axios.get(url, {headers, params}).then(res => {
+        //     console.log(res);
+        // });
+
+        var url = `https://oauth.reddit.com/r/${this.state.value}/new`;
+        var headers = { "Authorization" : "bearer " + this.state.accessToken };
+        var params = { "limit": "5" };
+        var postData = [];
+        axios.get(url, { headers, params }).then(res => {
+            var posts = res.data.data.children;
+            for(var i = 0; i < posts.length; i++){
+                var data = { "title": posts[i].data.title };
+                if(posts[i].data.selftext) data['text'] = posts[i].data.selftext;
+                if(posts[i].data.url) data['image'] = posts[i].data.url;
+                postData.push(data);
+            }
+        });
+        this.setState({ posts: postData });
     }
 
     onChange = (event, { newValue, method }) => {
-        if(method == 'type'){
+        if(method === 'type'){
             this.setState({
                 value: newValue
             });
-        } else if (method == 'enter'){
+        } else if (method === 'enter'){
             console.log('enter');
         }
     };
@@ -135,7 +160,11 @@ export class RedditWidget extends React.Component{
 
     formSubmit(event){ 
         event.preventDefault();
+        this.getOtherSubreddit();
+    }
 
+    openImageModal(imageSrc){
+        document.location = imageSrc;
     }
 
     render(){
@@ -146,30 +175,44 @@ export class RedditWidget extends React.Component{
             value,
             onChange: this.onChange
         };
+        
+        var redditPosts = this.state.posts.map(post => 
+            <div className="reddit-post mb-2">
+                <span className="reddit-post-title">{post.title}</span>
+                <span className="reddit-post-content text-light">{post.text}</span>
+                <img onClick={() => {this.openImageModal(post.image)}} className="reddit-post-image" src={post.image}/>
+            </div>
+        );
 
         return(
-            <div className="reddit-search">
-                <img className="reddit-logo" src={reddit_image}></img>
-                    <form id="redditForm" onSubmit={this.formSubmit} action="#">
-                        <div className="input-group">
-                            <div className="input-group-prepend">
-                                <span className="input-group-text">
-                                r/
-                                </span>
+            <div className="reddit-parent">
+                <div className="reddit-search">
+                    <img className="reddit-logo" src={reddit_image}></img>
+                        <form id="redditForm" onSubmit={this.formSubmit} action="#">
+                            <div className="input-group">
+                                <div className="input-group-prepend">
+                                    <span className="input-group-text">
+                                    r/
+                                    </span>
+                                </div>
+                                <Autosuggest
+                                    suggestions={suggestions}
+                                    onSuggestionsFetchRequested={this.onSuggestionsFetchRequested}
+                                    onSuggestionsClearRequested={this.onSuggestionsClearRequested}
+                                    onSuggestionSelected={this.onSuggestionSelected}
+                                    getSuggestionValue={this.getSuggestionValue}
+                                    renderSuggestion={this.renderSuggestion}
+                                    inputProps={inputProps}
+                                />
+                                <input type="button" hidden />
                             </div>
-                            <Autosuggest
-                                suggestions={suggestions}
-                                onSuggestionsFetchRequested={this.onSuggestionsFetchRequested}
-                                onSuggestionsClearRequested={this.onSuggestionsClearRequested}
-                                onSuggestionSelected={this.onSuggestionSelected}
-                                getSuggestionValue={this.getSuggestionValue}
-                                renderSuggestion={this.renderSuggestion}
-                                inputProps={inputProps}
-                            />
-                            {/* <input id="redditName" className="form-control" type="text" onChange={evt => this.inputChange(evt)} /> */}
-                            <input type="button" hidden />
-                        </div>
-                    </form>
+                        </form>
+                </div>
+                {this.state.posts.length > 0 &&
+                    <div className="reddit-content">
+                        { redditPosts }
+                    </div>
+                }
             </div>
         )
     }

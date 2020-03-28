@@ -13,20 +13,41 @@ class SpotifyWidget extends React.Component{
             showSongs: false,
             showPlaylists: false
         }
-        axios.get('https://api.spotify.com/v1/me/playlists',{
-            headers:{
-                'Authorization': 'Bearer ' + this.state.accessToken
-            }
-        }).then((res) => {
-            var ids = [];
-            for(var i in res.data.items){
-                ids.push(res.data.items[i].href);
-            }
-            this.setState({ spotifyPlaylists: res.data.items, spotifyPlaylistIDs: ids, showPlaylists: true });
-        }).catch((err) => {
-            console.log(err);
-        });
+
         this.goBack = this.goBack.bind(this);
+    }
+
+    componentWillMount(){
+        if(localStorage.getItem('spotifyPlaylists') != null){
+            if(localStorage.getItem('spotifyShowPlaylists') == 'true'){
+                // console.log(JSON.parse(localStorage.getItem('spotifyPlaylists')));
+                // console.log(JSON.parse(localStorage.getItem('spotifyPlaylistIDs')));
+                this.setState({ spotifyPlaylists: JSON.parse(localStorage.getItem('spotifyPlaylists')), 
+                                spotifyPlaylistIDs: JSON.parse(localStorage.getItem('spotifyPlaylistIDs')), 
+                                showPlaylists: true });
+            } else if (localStorage.getItem('spotifyShowSongs') == 'true'){
+                console.log(localStorage.getItem('spotifySongs'));
+                this.setState({ currentSpotifySongs: JSON.parse(localStorage.getItem('spotifySongs')), 
+                                showSongs: true, showPlaylists: false });
+            }
+        } else {
+            axios.get('https://api.spotify.com/v1/me/playlists',{
+                headers:{
+                    'Authorization': 'Bearer ' + this.state.accessToken
+                }
+            }).then((res) => {
+                var ids = [];
+                for(var i in res.data.items){
+                    ids.push(res.data.items[i].href);
+                }
+                this.setState({ spotifyPlaylists: res.data.items, spotifyPlaylistIDs: ids, showPlaylists: true });
+                localStorage.setItem('spotifyPlaylists', JSON.stringify(res.data.items));
+                localStorage.setItem('spotifyPlaylistIDs', JSON.stringify(ids));
+                localStorage.setItem('spotifyShowPlaylists', true);
+            }).catch((err) => {
+                console.log(err);
+            });
+        }
     }
 
     openSpotifyPlaylist(spotifyURI){
@@ -35,7 +56,10 @@ class SpotifyWidget extends React.Component{
                 'Authorization': 'Bearer ' + this.state.accessToken
             }
         }).then((res) => {
-            this.setState({currentSpotifySongs: res.data.tracks.items, showSongs: true, showPlaylists: false});     
+            this.setState({currentSpotifySongs: res.data.tracks.items, showSongs: true, showPlaylists: false});
+            localStorage.setItem('spotifySongs', JSON.stringify(res.data.tracks.items));
+            localStorage.setItem('spotifyShowSongs', true);
+            localStorage.setItem('spotifyShowPlaylists', false);
         }).catch((err) => {
             console.log(err);
         });
