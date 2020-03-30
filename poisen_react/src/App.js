@@ -1,4 +1,5 @@
 import React from 'react';
+import Clock from 'react-live-clock';
 import './App.css';
 
 import spotify_image from './images/spotify.png';
@@ -109,40 +110,71 @@ class App extends React.Component {
     //console.log(this);
   }
 
+  savePos(widgetName, x, y){
+    localStorage.setItem(widgetName, x + ' ' + y);
+  }
+
+  getXPos(widgetName){
+    if(localStorage.getItem(widgetName) != null){
+      var s = localStorage.getItem(widgetName);
+      return s.split(' ')[0];
+    }
+  }
+  getYPos(widgetName){
+    if(localStorage.getItem(widgetName) != null){
+      return localStorage.getItem(widgetName).split(' ')[1];
+    }
+  }
+
   //
   // DOUBLE CLICK WIDGET TO HIDE
   // HAVE HOVER LITTLE BUTTON AT TOP LEFT WHICH WHEN HOVER SHOES HIDDEN WIDGET
   // OR HAVE WIDGETS HIDDEN ALREADY WHICH CAN BE ADDED
   // CLOCK WIDGET
+  //
+  //
+  // REDDIT FEED
+  // TWITTER IMAGES ONLY LINKS RN
   // 
 
   render(){
     var twitter = false;
     if(localStorage.getItem('twitterLoggedIn') != null) twitter = localStorage.getItem('twitterLoggedIn');
 
+    var twitterX = this.getXPos('twitterWidget'),
+        twitterY = this.getYPos('twitterWidget');
+    var redditX = this.getXPos('redditWidget'),
+        redditY = this.getYPos('redditWidget');
+    var spotifyX = this.getXPos('spotifyWidget'),
+        spotifyY = this.getYPos('spotifyWidget');
+
     return (
         <div className="App">
           <div className="background"></div>
           <div id="main">
             <div id="header">
-              <h1> Poisen's Cave <span className="lead">(10:05)</span></h1>
+              {/* <h1> Poisen's Cave <span className="lead">(10:05)</span></h1> */}
+              <h3><Clock format={'HH:mm'} ticking={true}/></h3>
             </div>
             <div id="center">
               {localStorage.getItem('spotifyAccessToken') != null &&
-                <Draggable>
-                  <div className="widget"  onClick={this.resize}>
+                <Draggable bounds={'body'} handle={'.widgetHandle'} onStop={(e, d) => { this.savePos('spotifyWidget', e.clientX, e.clientY); }}>
+                  <div className="widget"  onClick={this.resize} style={{position: 'absolute', top: `${spotifyY}px`, left: `${spotifyX}px`}}>
+                    <div className="widgetHandle"></div>
                     <SpotifyWidget accessToken={localStorage.getItem('spotifyAccessToken')}></SpotifyWidget>
                   </div>
                 </Draggable>    
               }
-              <Draggable>
-                <div className="widget" style={{height: 'auto'}}>
+              <Draggable bounds={'body'} handle={'.widgetHandle'} onStop={(e, d) => { this.savePos('redditWidget', e.clientX, e.clientY); }}>
+                <div className="widget" style={{height: 'auto', position: 'absolute', top: `${redditY}px`, left: `${redditX}px`}}>
+                  <div className="widgetHandle"></div>
                   <RedditWidget></RedditWidget>
                 </div>
               </Draggable>
               {twitter && 
-                <Draggable>
-                  <div className="widget" style={{height: 'auto'}}>
+                <Draggable bounds={'body'} handle={'.widgetHandle'} onStop={(e, d) => { this.savePos('twitterWidget', e.clientX, e.clientY); }}>
+                  <div className="widget" style={{height: 'auto', position: 'absolute', top: `${twitterY}px`, left: `${twitterX}px`}}>
+                    <div className="widgetHandle"></div>
                     <TwitterWidget data={JSON.parse(localStorage.getItem('twitterData'))}></TwitterWidget>
                   </div>
                 </Draggable>

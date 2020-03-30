@@ -13,20 +13,16 @@ class SpotifyWidget extends React.Component{
             showSongs: false,
             showPlaylists: false
         }
-
         this.goBack = this.goBack.bind(this);
     }
 
     componentWillMount(){
         if(localStorage.getItem('spotifyPlaylists') != null){
             if(localStorage.getItem('spotifyShowPlaylists') == 'true'){
-                // console.log(JSON.parse(localStorage.getItem('spotifyPlaylists')));
-                // console.log(JSON.parse(localStorage.getItem('spotifyPlaylistIDs')));
                 this.setState({ spotifyPlaylists: JSON.parse(localStorage.getItem('spotifyPlaylists')), 
                                 spotifyPlaylistIDs: JSON.parse(localStorage.getItem('spotifyPlaylistIDs')), 
                                 showPlaylists: true });
             } else if (localStorage.getItem('spotifyShowSongs') == 'true'){
-                console.log(localStorage.getItem('spotifySongs'));
                 this.setState({ currentSpotifySongs: JSON.parse(localStorage.getItem('spotifySongs')), 
                                 showSongs: true, showPlaylists: false });
             }
@@ -82,6 +78,8 @@ class SpotifyWidget extends React.Component{
 
     goBack(){
         this.setState({ showPlaylists: true, showSongs: false });
+        localStorage.setItem('spotifyShowPlaylists', 'true');
+        localStorage.setItem('spotifyShowSongs', 'false');
     } 
 
     render(){

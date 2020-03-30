@@ -27,16 +27,24 @@ export class RedditWidget extends React.Component{
             imageModalSrc: ''
         };
         this.formSubmit = this.formSubmit.bind(this);
-        // console.log(this.state.posts);
     }
     
     componentDidMount(){
+        // localStorage.removeItem('redditAccessToken');
+        // localStorage.removeItem('redditRefreshToken');
         var params = this.getHashParams();
         // GET NUMBER OF KEYS IN OBJECT (NO LENGTH METHOD FOR OBJECT)
+        // THIS IS FOR FIRST TIME LOG IN
         if (Object.keys(params).length === 2 && Object.keys(params)[0] === 'state'){
             var token = params.code;
             this.setState({ accessToken: token });
             this.getAccessToken(token);
+        } else if(localStorage.getItem('redditAccessToken') != null){
+            this.setState({ accessToken: localStorage.getItem('redditAccessToken'),
+                            refreshToken: localStorage.getItem('redditRefreshToken')}, () => {
+                                this.getSubscribedSubreddits();
+                        });
+            if(localStorage.getItem('redditPosts') != null) this.setState({ posts: JSON.parse(localStorage.getItem('redditPosts'))});
         }
     }
 
@@ -45,6 +53,8 @@ export class RedditWidget extends React.Component{
             res.text().then(data => {
                 var d = JSON.parse(data);
                 this.setState({ accessToken: d.access_token, refreshToken: d.refresh_token }, () => {
+                    localStorage.setItem('redditAccessToken', d.access_token);
+                    localStorage.setItem('redditRefreshToken', d.refresh_token);
                     this.getSubscribedSubreddits();
                 });
             });
@@ -106,6 +116,7 @@ export class RedditWidget extends React.Component{
             }
         });
         this.setState({ posts: postData });
+        localStorage.setItem('redditPosts', JSON.stringify(postData));
     }
 
     onChange = (event, { newValue, method }) => {
@@ -164,7 +175,7 @@ export class RedditWidget extends React.Component{
     }
 
     openImageModal(imageSrc){
-        document.location = imageSrc;
+        window.open(imageSrc, '_blank').focus();
     }
 
     render(){
@@ -179,7 +190,7 @@ export class RedditWidget extends React.Component{
         var redditPosts = this.state.posts.map(post => 
             <div className="reddit-post mb-2">
                 <span className="reddit-post-title">{post.title}</span>
-                <span className="reddit-post-content text-light">{post.text}</span>
+                <span className="reddit-post-content text-light">{post.selftext}</span>
                 <img onClick={() => {this.openImageModal(post.image)}} className="reddit-post-image" src={post.image}/>
             </div>
         );

@@ -2,6 +2,7 @@
 .green{ background-color: rgb(114, 144, 111); }
 .grey{ background-color: rgb(114, 102, 102); }
 .circle{ border-radius: 55%; }
+body{ overflow-y: hidden; }
 .background{
   height: 100%;
   width: 100%;
@@ -25,8 +26,21 @@
   width: 100%;
   height: 100%;
   display: grid;
-  place-items: center;
+  justify-items: end;
+  padding-right: 10px;
+  padding-top: 5px;
 }
+.widgetHandle{
+  position: absolute;
+  top: -5px;
+  left: -5px;
+  width: 20px;
+  height: 20px;
+  background-color: rgb(201, 22, 43);
+  border-radius: 50%;
+  cursor: pointer;
+}
+.widgetHandle:hover{ background-color: rgb(191, 21, 33); }
 .widget{
   background-color: rgba(20, 20, 20, 0.95);
   width: 20%;
@@ -38,7 +52,7 @@
   display: grid;
   place-items: center;
 }
-
+/* #center{ display: flex; } */
 #footer{
   display: grid;
   grid-template-columns: 40% 20% 40%;
