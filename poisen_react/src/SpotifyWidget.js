@@ -8,6 +8,8 @@ import prev_button from './images/prev_track.png';
 import next_button from './images/next_track.png';
 import refresh_button from './images/refresh.png';
 
+import MinimizeButton from './WidgetMinimizeButton';
+
 class SpotifyWidget extends React.Component{
     constructor(props){
         super(props);
@@ -66,6 +68,7 @@ class SpotifyWidget extends React.Component{
     }
 
     getCurrentSong(){
+        setTimeout(() => console.log('wait half a second'), 500);
         axios.get('https://api.spotify.com/v1/me/player', {
             headers:{
                 'Authorization': 'Bearer ' + this.state.accessToken
@@ -154,6 +157,7 @@ class SpotifyWidget extends React.Component{
             }
         }).then((res) => {
             console.log('Playing song: ' + trackURI);
+            this.getCurrentSong();
         }).catch((err) => {
             console.log(err);
         });
@@ -163,7 +167,19 @@ class SpotifyWidget extends React.Component{
         this.setState({ showPlaylists: true, showSongs: false });
         localStorage.setItem('spotifyShowPlaylists', 'true');
         localStorage.setItem('spotifyShowSongs', 'false');
-    } 
+    }
+
+    toggle(){
+        var c = document.getElementsByClassName('spotify-widget')[0];
+        var parent = document.getElementsByClassName('SPOTIFY_WIDGET')[0];
+        if(c.style.gridTemplateRows != "0% 100%"){
+            c.style.gridTemplateRows = "0% 100%";
+            parent.style.height = "12%";
+        } else {
+            c.style.gridTemplateRows = "80% 20%";
+            parent.style.height = "50%";
+        }
+    }
 
     render(){
         let spotifyPlaylists = this.state.spotifyPlaylists ? this.state.spotifyPlaylists.map((playlist) => 
@@ -172,7 +188,7 @@ class SpotifyWidget extends React.Component{
                 <div className="spotify-block-info">
                     <a href='#'>
                         <span className="text-light">{playlist.name}</span>
-                    </a>
+                    </a> 
                 </div>
             </div>
         ) : '';
@@ -188,6 +204,7 @@ class SpotifyWidget extends React.Component{
         
         return(
             <div className="spotify-widget">
+                <MinimizeButton clickFunction={() => this.toggle()}/>
                 <div className="spotify-content">
                     {content}
                     {this.state.showSongs &&

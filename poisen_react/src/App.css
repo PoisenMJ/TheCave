@@ -51,6 +51,7 @@ body{ overflow-y: hidden; }
   position: relative;
   display: grid;
   place-items: center;
+  transition: 0.5s;
 }
 
 /* #center{ display: flex; } */

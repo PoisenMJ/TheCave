@@ -8,7 +8,7 @@ import twitter_image from './images/twitter.png';
 
 import Draggable from 'react-draggable';
 import SpotifyWidget from './SpotifyWidget';
-import {RedditWidget, RedditLogin} from './RedditWidget';
+import { RedditWidget, RedditLogin } from './RedditWidget';
 import TwitterWidget from './TwitterWidget';
 
 import keys from './keys';
@@ -140,6 +140,9 @@ class App extends React.Component {
   // REDDIT FEED
   // TOP LEFT CURRENT PLAYING TRACK AND PLAYBACK CONTROLS
   // TWITTER IMAGES ONLY LINKS RN
+  //
+  // TWITCH FEED -> WHOS LIVE ETC
+  // YOUTUBE RECOMMENDATIONS
   // 
 
   render(){
@@ -162,7 +165,7 @@ class App extends React.Component {
             </div>
             <div id="center">
               {localStorage.getItem('spotifyAccessToken') != null &&
-                <Draggable bounds={'body'} handle={'.widgetHandle'} onStop={(e, d) => { this.savePos('spotifyWidget', e.clientX, e.clientY); }}>
+                <Draggable defaultClassName="SPOTIFY_WIDGET" bounds={'body'} handle={'.widgetHandle'} onStop={(e, d) => { this.savePos('spotifyWidget', e.clientX, e.clientY); }}>
                   <div className="widget"  onClick={this.resize} style={{position: 'absolute', top: `${spotifyY}px`, left: `${spotifyX}px`}}>
                     <div className="widgetHandle"></div>
                     <SpotifyWidget accessToken={localStorage.getItem('spotifyAccessToken')}></SpotifyWidget>
