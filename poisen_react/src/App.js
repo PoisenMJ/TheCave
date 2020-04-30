@@ -6,8 +6,6 @@ import spotify_image from './images/spotify.png';
 import reddit_image from './images/reddit_signin.png';
 import twitter_image from './images/twitter.png';
 
-import axios from 'axios';
-
 import Draggable from 'react-draggable';
 import SpotifyWidget from './SpotifyWidget';
 import {RedditWidget, RedditLogin} from './RedditWidget';
@@ -41,9 +39,10 @@ class App extends React.Component {
       .then(res => {
         res.text().then(data => {
           var d = JSON.parse(data);
-          if(d.error != "YES"){
+          if(d.error !== "YES"){
             this.setState({ twitter: true });
             localStorage.setItem('twitterLoggedIn', 'true');
+            localStorage.setItem('twitterData', JSON.stringify(d));
           }
         }); 
       })
@@ -70,7 +69,7 @@ class App extends React.Component {
   getHashParams() {
     var hashParams = {};
     var e, r, q;
-    if(window.location.hash != ""){
+    if(window.location.hash !== ""){
       r = /([^&;=]+)=?([^&;]*)/g;
       q = window.location.hash.substring(1);
     } else {
@@ -126,6 +125,11 @@ class App extends React.Component {
     }
   }
 
+  minimizeWidget(widgetName){
+    console.log('hi');
+    console.log(widgetName);
+  }
+
   //
   // DOUBLE CLICK WIDGET TO HIDE
   // HAVE HOVER LITTLE BUTTON AT TOP LEFT WHICH WHEN HOVER SHOES HIDDEN WIDGET
@@ -134,13 +138,14 @@ class App extends React.Component {
   //
   //
   // REDDIT FEED
+  // TOP LEFT CURRENT PLAYING TRACK AND PLAYBACK CONTROLS
   // TWITTER IMAGES ONLY LINKS RN
   // 
 
   render(){
     var twitter = false;
     if(localStorage.getItem('twitterLoggedIn') != null) twitter = localStorage.getItem('twitterLoggedIn');
-
+    
     var twitterX = this.getXPos('twitterWidget'),
         twitterY = this.getYPos('twitterWidget');
     var redditX = this.getXPos('redditWidget'),
@@ -153,7 +158,6 @@ class App extends React.Component {
           <div className="background"></div>
           <div id="main">
             <div id="header">
-              {/* <h1> Poisen's Cave <span className="lead">(10:05)</span></h1> */}
               <h3><Clock format={'HH:mm'} ticking={true}/></h3>
             </div>
             <div id="center">
@@ -173,9 +177,10 @@ class App extends React.Component {
               </Draggable>
               {twitter && 
                 <Draggable bounds={'body'} handle={'.widgetHandle'} onStop={(e, d) => { this.savePos('twitterWidget', e.clientX, e.clientY); }}>
-                  <div className="widget" style={{height: 'auto', position: 'absolute', top: `${twitterY}px`, left: `${twitterX}px`}}>
+                  <div id="twitterWidgetParent" className="widget" style={{height: 'auto', position: 'absolute', top: `${twitterY}px`, left: `${twitterX}px`}}>
                     <div className="widgetHandle"></div>
-                    <TwitterWidget data={JSON.parse(localStorage.getItem('twitterData'))}></TwitterWidget>
+                    {/* <div className="widgetMinimize"></div> */}
+                    <TwitterWidget className='twitterWidget' data={JSON.parse(localStorage.getItem('twitterData'))}></TwitterWidget>
                   </div>
                 </Draggable>
               }

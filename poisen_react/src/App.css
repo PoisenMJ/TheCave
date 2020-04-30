@@ -52,6 +52,7 @@ body{ overflow-y: hidden; }
   display: grid;
   place-items: center;
 }
+
 /* #center{ display: flex; } */
 #footer{
   display: grid;

@@ -44,6 +44,7 @@ function makeid(length) {
 }
 
 router.get('/twitter/login', (req, res, next) => {
+  console.log('TWITTER LOGIN SECOND STEP:');
   var timestamp = Math.floor(new Date().getTime() / 1000);
   // var timestamp = '1583151031';
   var nonce = makeid(11);
@@ -94,13 +95,13 @@ router.get('/twitter/login', (req, res, next) => {
 });
 
 router.get('/twitter/verify/:token/:verify', (req, res, next) => {
+  console.log('TWITTER VERIFY LOGIN:LAST STEP');
   var token = req.params.token, verify = req.params.verify;
   var url = `https://api.twitter.com/oauth/access_token?oauth_consumer_key=${keys.twitter.CLIENT_ID}&oauth_token=${token}&oauth_verifier=${verify}`;
   var options = {
     method: 'POST',
     url: url,
   };
-
   request(options, (error, response, body) => {
     if(error) console.log(error)
     else{
@@ -125,30 +126,33 @@ router.get('/twitter/verify/:token/:verify', (req, res, next) => {
 }); 
 
 router.get('/twitter/timeline/:name', (req, res, next) => {
-  T.get('statuses/home_timeline', (err, response, data) => {
-    if(err) console.log(err);
-    else{
-      console.log(response);
-      var timeline = [];
-      for (var i = 0; i < response.length; i++){
-        var current = {};
-        current.text = response[i].text;
-        current.source = response[i].source;
-        current.user = response[i].user;
-        timeline.push(current);
-      }
-      res.send(JSON.stringify(timeline));
-    }
-  })
+  console.log('TWITTER GET USER HOME TIMELINE:');
+  if(T){
+    T.get('statuses/home_timeline', (err, response, data) => {
+      if(err) console.log(err);
+      else{
+        var timeline = []; 
+        for (var i = 0; i < response.length; i++){
+          var current = {};
+          current.text = response[i].text;
+          current.source = response[i].source;
+          current.user = response[i].user;
+          console.log(response[i]);
+          timeline.push(current);
+        }
+        res.send(JSON.stringify(timeline));
+      } 
+    });
+  } else res.send(JSON.stringify({'code': 'fail'})); 
 });
 
 router.get('/twitter/search/:query',(req, res, next) => {
-  T.get('search/tweets', { q: req.params.query } ,(err, response, data) => {
+  T.get('search/tweets', { q: req.params.query, lang: 'en', count: '20', result_type: 'popular' } ,(err, response, data) => {
     if(err) console.log(err);
     var data = [];
     for (var i = 0; i < response.statuses.length; i++){
       var current = {};
-      current.text = response.statuses[i].text;
+      current.text = response.statuses[i].text;  
       current.source = response.statuses[i].source;
       current.user = response.statuses[i].user;
       data.push(current);

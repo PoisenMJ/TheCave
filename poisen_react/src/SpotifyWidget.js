@@ -2,6 +2,11 @@ import React from 'react';
 import './SpotifyWidget.css';
 import axios from 'axios';
 
+import play_button from './images/play_track.png';
+import pause_button from './images/pause_track.png';
+import prev_button from './images/prev_track.png';
+import next_button from './images/next_track.png';
+
 class SpotifyWidget extends React.Component{
     constructor(props){
         super(props);
@@ -11,12 +16,17 @@ class SpotifyWidget extends React.Component{
             spotifyPlaylistIDs: [],
             currentSpotifySongs: [],
             showSongs: false,
-            showPlaylists: false
+            showPlaylists: false,
+            currentTrack: '',
+            currentArtist: '',
+            currentlyPlaying: false
         }
         this.goBack = this.goBack.bind(this);
+        this.togglePlayback = this.togglePlayback.bind(this);
     }
 
     componentWillMount(){
+        this.getCurrentSong();
         if(localStorage.getItem('spotifyPlaylists') != null){
             if(localStorage.getItem('spotifyShowPlaylists') == 'true'){
                 this.setState({ spotifyPlaylists: JSON.parse(localStorage.getItem('spotifyPlaylists')), 
@@ -44,6 +54,50 @@ class SpotifyWidget extends React.Component{
                 console.log(err);
             });
         }
+        
+        // CHECKS EVERY 30 SECONDS (HALF A MIN) FOR CURRENT SONG PLAYING
+        setInterval(() => {
+            this.getCurrentSong();
+        }, 1000 * 60 * 0.5)
+    }
+
+    getCurrentSong(){
+        axios.get('https://api.spotify.com/v1/me/player', {
+            headers:{
+                'Authorization': 'Bearer ' + this.state.accessToken
+            }
+        }).then((res) => {
+            // console.log(res.data);
+            var artistName = res.data.item.artists[0].name;
+            var trackName = res.data.item.name;
+            var playing = res.data.is_playing;
+            console.log('Currently Playing: ' + trackName + ' by ' + artistName);
+            this.setState({ currentTrack: trackName, currentArtist: artistName, currentlyPlaying: playing });
+        });
+    }
+
+    togglePlayback(){
+        if(this.state.currentlyPlaying){
+            // FOR SOME REASON AXIOS IS NOT WORKING SO HAD TO USE FETCH 
+            fetch("https://api.spotify.com/v1/me/player/pause", {
+                method: 'PUT',
+                headers:{
+                    "Accept": "application/json",
+                    "Content-Type": "application/json",
+                    "Authorization": "Bearer " + this.state.accessToken
+                }
+            }).then((res) => {
+                this.setState({ currentlyPlaying: false });
+                console.log(res);
+                console.log('paused');
+            });
+        } else {
+
+        }
+    }
+
+    resumePlayback(){
+
     }
 
     openSpotifyPlaylist(spotifyURI){
@@ -102,17 +156,34 @@ class SpotifyWidget extends React.Component{
             </div>
         ) : '';
         let content = this.state.showPlaylists ? spotifyPlaylists : this.state.showSongs ? singlePlaylist : null;
+        
         return(
             <div className="spotify-widget">
-                {content}
-                {this.state.showSongs &&
-                    <div className="spotify-block" onClick={this.goBack}>
-                        <div></div>
-                        <div className="spotify-block-info">
-                            <span className="text-light">Go Back.</span>
-                        </div>
-                    </div>       
-                }
+                <div className="spotify-content">
+                    {content}
+                    {this.state.showSongs &&
+                        <div className="spotify-block" onClick={this.goBack}>
+                            <div></div>
+                            <div className="spotify-block-info">
+                                <span className="text-light">Go Back</span>
+                            </div>
+                        </div>       
+                    }
+                </div>
+                <div className="spotify-playback">
+                    <div className="spotify-playback-track lead">
+                        <p className="font-weight-bold">{this.state.currentTrack}</p>
+                        <p>{this.state.currentArtist}</p>
+                    </div>
+                    <div className="spotify-playback-controls">
+                        <img src={prev_button}/>
+                        {this.state.currentlyPlaying
+                            ? <img src={pause_button} onClick={this.togglePlayback}/>
+                            : <img src={play_button}/>
+                        }
+                        <img src={next_button}/>
+                    </div>
+                </div>
             </div>
         )
     }
