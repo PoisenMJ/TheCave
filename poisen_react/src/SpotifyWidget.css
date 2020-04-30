@@ -55,3 +55,12 @@
 .spotify-playback-controls img{ max-width: 30%!important; cursor: pointer; }
 .spotify-playback-track{ place-self: center; text-align: center; padding-top: 0.5rem; }
 .spotify-playback-track p { margin: 0; font-size: 1rem; }
+.spotify-playback-track-artist { font-size: 0.75rem!important; }
+.spotify-playback-refresh{ 
+    margin-top: 5px;
+    margin-left: 5px;
+    width: 20px;
+    height: 20px;
+    position: absolute;
+    cursor: pointer;
+}

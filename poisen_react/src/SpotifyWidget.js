@@ -6,6 +6,7 @@ import play_button from './images/play_track.png';
 import pause_button from './images/pause_track.png';
 import prev_button from './images/prev_track.png';
 import next_button from './images/next_track.png';
+import refresh_button from './images/refresh.png';
 
 class SpotifyWidget extends React.Component{
     constructor(props){
@@ -23,6 +24,9 @@ class SpotifyWidget extends React.Component{
         }
         this.goBack = this.goBack.bind(this);
         this.togglePlayback = this.togglePlayback.bind(this);
+        this.playNextTrack = this.playNextTrack.bind(this);
+        this.playPrevTrack = this.playPrevTrack.bind(this);
+        this.getCurrentSong = this.getCurrentSong.bind(this);
     }
 
     componentWillMount(){
@@ -77,7 +81,7 @@ class SpotifyWidget extends React.Component{
     }
 
     togglePlayback(){
-        if(this.state.currentlyPlaying){
+        if(this.state.currentlyPlaying == true){
             // FOR SOME REASON AXIOS IS NOT WORKING SO HAD TO USE FETCH 
             fetch("https://api.spotify.com/v1/me/player/pause", {
                 method: 'PUT',
@@ -88,16 +92,41 @@ class SpotifyWidget extends React.Component{
                 }
             }).then((res) => {
                 this.setState({ currentlyPlaying: false });
-                console.log(res);
-                console.log('paused');
             });
-        } else {
-
+        } else if (this.state.currentlyPlaying == false){
+            fetch("https://api.spotify.com/v1/me/player/play", {
+                method: 'PUT',
+                headers: {
+                    "Accept": "application/json",
+                    "Content-Type": "application/json",
+                    "Authorization": "Bearer " + this.state.accessToken
+                }
+            }).then((res) => {
+                this.setState({ currentlyPlaying: true });
+            });
         }
     }
 
-    resumePlayback(){
+    playNextTrack(){
+        fetch("https://api.spotify.com/v1/me/player/next", {
+            method: 'POST',
+            headers: {
+                "Accept": "application/json",
+                "Content-Type": "application/json",
+                "Authorization": "Bearer " + this.state.accessToken
+            }
+        }).then((res) => this.getCurrentSong());
+    }
 
+    playPrevTrack(){
+        fetch("https://api.spotify.com/v1/me/player/previous", {
+            method: 'POST',
+            headers: {
+                "Accept": "application/json",
+                "Content-Type": "application/json",
+                "Authorization": "Bearer " + this.state.accessToken
+            }
+        }).then((res) => this.getCurrentSong());
     }
 
     openSpotifyPlaylist(spotifyURI){
@@ -173,16 +202,17 @@ class SpotifyWidget extends React.Component{
                 <div className="spotify-playback">
                     <div className="spotify-playback-track lead">
                         <p className="font-weight-bold">{this.state.currentTrack}</p>
-                        <p>{this.state.currentArtist}</p>
+                        <p className="spotify-playback-track-artist">{this.state.currentArtist}</p>
                     </div>
                     <div className="spotify-playback-controls">
-                        <img src={prev_button}/>
+                        <img src={prev_button} onClick={this.playPrevTrack}/>
                         {this.state.currentlyPlaying
                             ? <img src={pause_button} onClick={this.togglePlayback}/>
-                            : <img src={play_button}/>
+                            : <img src={play_button} onClick={this.togglePlayback}/>
                         }
-                        <img src={next_button}/>
+                        <img src={next_button} onClick={this.playNextTrack}/>
                     </div>
+                <img className="spotify-playback-refresh" onClick={this.getCurrentSong} src={refresh_button}/>
                 </div>
             </div>
         )
